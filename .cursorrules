@@ -1,6 +1,34 @@
 # Cursor / Windsurf Global Rules: Architecture Sync
 
-- Maintain ARCHITECTURE.md as the 100% Single Source of Truth for system architecture.
-- Whenever you add/edit any endpoint, database schema, background worker, or external service, update ARCHITECTURE.md in the same turn.
-- Tag items with: `✅ In Code`, `◼ Planned`, `⚠️ Needs Review`.
-- Never invent architectures without citing actual file paths and line numbers (`file:line`). Missing elements must be stated as `> Not Found`.
+> Level: MANDATORY
+> Purpose: Prevent architecture drift and codebase degradation by enforcing Architecture First and Same-Turn Synchronization.
+
+## 1. Architecture First (Human Approval Gate)
+- If ARCHITECTURE.md does not exist, OR header status is NOT `✅ Confirmed` / `✅ 確定済`:
+  - You MUST propose and generate the 27-section architecture specification and obtain explicit human user approval before writing any implementation code.
+  - In headless or non-interactive environments, keep status as `◼ Unconfirmed`, output only the architecture proposal/spec, and DO NOT proceed with implementation code (AI self-approval is strictly forbidden).
+
+## 2. Same-Turn Synchronization
+- Whenever you add or alter:
+  - Services, modules, or domain slices
+  - Database tables, columns, or relations
+  - API endpoints, contracts, or webhooks
+  - Background workers, queues, or scheduled jobs
+  - External third-party integrations
+  - Environment variables
+  YOU MUST update the architecture document in the exact same response/turn. Zero architectural drift across commits.
+
+## 3. Grounding & Status Symbols
+- Every statement must be 100% grounded in code (`file:line`). Missing elements must be marked as `> Not Found`.
+- Use the 4 status symbols:
+  - `✅` In Code (実装済み: verified by test or manual run)
+  - `◼` Planned (設計確定・未実装: boundary agreed, no code yet)
+  - `⚠️` Drift / Review (乖離・要確認: discrepancy or refactoring needed)
+  - `~~Deprecated~~` (廃止・非推奨)
+
+## 4. Header & Changelog Specification
+- Header must include machine-readable marker:
+  `<!-- archguard: synced=base-commit-hash status=confirmed date=YYYY-MM-DD -->`
+  `> Last Updated: YYYY-MM-DD · Synced Commit: [base-commit-hash] · Status: ✅ Confirmed`
+- Append 1 line to §27 Changelog on every structural change:
+  `- YYYY-MM-DD · [commit-hash] · <Summary> · Sections: §4, §9`

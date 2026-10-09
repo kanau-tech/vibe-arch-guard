@@ -1,25 +1,75 @@
 ---
-description: Enforce Architecture First & Synchronize ARCHITECTURE.md on every structural change
-globs: **/*
+description: Enforce Architecture First, Human Approval, and Same-Turn Sync with ARCHITECTURE.md
+globs: "**/*"
 alwaysApply: true
 ---
 
-# Architecture Sync Rule (Cursor / Windsurf)
+# Architecture Sync — Drift Prevention & Architecture-First Discipline (Cursor / Windsurf)
 
-## Purpose
-Prevent architecture drift and spaghetti code caused by AI taking shortcuts. Keep `ARCHITECTURE.md` 100% in sync with code.
+> **Level: MANDATORY**
+> **Target**: All application repositories (client projects, SaaS products, internal tools).
 
-## Mandatory Rules for AI
-1. **Architecture First**: If starting work on a repository without an architecture specification, propose and generate `ARCHITECTURE.md` (or `docs/02-ky-thuat/architecture.md`) with 27 sections before writing code.
-2. **Same-Turn Synchronization**: Whenever you add or alter:
-   - Services or modules
-   - Database tables, columns, or relations
-   - API endpoints or Webhooks
-   - Background jobs or message queues
-   - External third-party integrations
-   - Environment variables
-   YOU MUST update `ARCHITECTURE.md` in the exact same response/turn.
-3. **Commit & Status Tracking**:
-   - Header must be updated: `> Last Updated: YYYY-MM-DD · Synced Commit: [hash] · Status: ✅ Confirmed`
-   - Use status symbols: `✅ In Code` · `◼ Planned` · `⚠️ Drift/Review` · `~~Deprecated~~`
-   - Append 1 line to §27 Changelog: `- YYYY-MM-DD · <hash> · <summary> · Sections: §4, §9`
+---
+
+## 1. Core Rules
+
+1. **Architecture First (Human Approval Gate)**:
+   - When starting work in a repository where no architecture specification exists, **OR when the header status is NOT `✅ Confirmed` / `✅ 確定済` (including initial `◼ Unconfirmed` state)**:
+   - You MUST propose and generate the 27-section architecture specification and **obtain explicit human user approval before writing any implementation code**.
+   - **Headless / Non-interactive Safety**: In headless or non-interactive environments (CI, background agents, batch runs) where human approval cannot be obtained, maintain status as `◼ Unconfirmed`, output only the architecture proposal/spec, and **DO NOT proceed with implementation code (No self-approval by AI)**.
+2. **Same-Turn Synchronization**:
+   - Whenever code changes affect system structure (adding services/modules, DB tables/columns/relations, API endpoints/webhooks, background jobs/queues, external integrations, environment variables), **you MUST update the architecture specification in the exact same response/turn**. Zero architectural drift across commits.
+3. **Write Authorization**:
+   - You have permanent authorization to update the architecture document (`docs/02-ky-thuat/architecture.md`, `docs/ARCHITECTURE.md`, or root `ARCHITECTURE.md`) and its index references.
+
+---
+
+## 2. Target Files
+
+- Default paths: `docs/02-ky-thuat/architecture.md` or `docs/ARCHITECTURE.md`
+- Existing project: If root `ARCHITECTURE.md` already exists, respect and maintain that file.
+
+---
+
+## 3. Mandatory Header Specification
+
+The top of the architecture specification must include the machine-readable marker and human header:
+
+```markdown
+<!-- archguard: synced=base-commit-hash status=confirmed date=YYYY-MM-DD -->
+> Last Updated: YYYY-MM-DD · Synced Commit: `base-commit-hash` · Status: ✅ Confirmed (YYYY-MM-DD)
+```
+*(In Japanese repositories: `> 最終更新: YYYY-MM-DD · 同期コミット: base-commit-hash · ステータス: ✅ 確定済 (YYYY-MM-DD)`)*
+
+- For unapproved drafts: `status=unconfirmed` and status text `◼ Unconfirmed (Initial Draft)`.
+- `base-commit-hash` must be a real, verified base commit hash (never fabricate a self-commit hash).
+
+---
+
+## 4. Status Symbols
+
+Every component, table, and endpoint in the specification must use one of these standard symbols:
+
+| Symbol | Meaning | Criteria |
+|---|---|---|
+| `✅` | **In Code (実装済み)** | Production code exists, verified by tests or manual run |
+| `◼` | **Planned (設計確定・未実装)** | Specification & boundaries agreed upon, no code written yet |
+| `⚠️` | **Drift / Review (乖離・要確認)** | Discrepancy between code and spec, or under refactoring |
+| `~~Deprecated~~` | **Deprecated (廃止・非推奨)** | Removed or scheduled for deprecation |
+
+---
+
+## 5. Changelog Enforcement
+
+At the end of the specification (§27), append one line to the Changelog for every architectural change:
+
+```markdown
+- YYYY-MM-DD · `commit-hash` · <Summary of change> · Sections: §4, §9
+```
+
+---
+
+## 6. Exclusions (When this rule does NOT trigger)
+
+1. Documentation-only, prompt-only, or agent-config repositories without runtime code.
+2. Minor bug fixes, typo fixes, or internal function logic improvements that do NOT alter module boundaries, API contracts, DB schemas, or external I/O.

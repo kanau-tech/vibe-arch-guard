@@ -2,15 +2,37 @@ name: Architecture Drift CI Check
 
 on:
   pull_request:
+    branches: [ main, master ]
     paths:
       - 'src/**'
+      - 'app/**'
       - 'apps/**'
       - 'packages/**'
+      - 'internal/**'
+      - 'cmd/**'
       - 'prisma/**'
       - 'migrations/**'
+      - 'docker-compose*.yml'
+      - 'Dockerfile*'
+      - '.env.example'
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'src/**'
+      - 'app/**'
+      - 'apps/**'
+      - 'packages/**'
+      - 'internal/**'
+      - 'cmd/**'
+      - 'prisma/**'
+      - 'migrations/**'
+      - 'docker-compose*.yml'
+      - 'Dockerfile*'
+      - '.env.example'
 
 jobs:
   check-architecture-sync:
+    name: Verify Architectural Synchronization (Fail-Closed)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,15 +40,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify Architecture File Updated
+      - name: Check for Bypass Conditions
+        id: check_bypass
         run: |
-          echo "Checking whether PR modified architecture specification..."
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} HEAD)
-          echo "Changed files in PR:"
-          echo "$CHANGED_FILES"
+          # 1. Commit message bypass
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if echo "$COMMIT_MSG" | grep -qE '\[skip-arch-drift\]|\[skip-drift\]'; then
+            echo "bypass=true" >> $GITHUB_OUTPUT
+            echo "ℹ️ Commit message requests drift check skip."
+            exit 0
+          fi
           
-          if echo "$CHANGED_FILES" | grep -qE '(ARCHITECTURE\.md|docs/02-ky-thuat/architecture\.md)'; then
-            echo "✅ Architecture specification is updated in this PR!"
+          # 2. PR label bypass (if run on pull_request)
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
+            if echo "$LABELS" | grep -q "arch:no-structural-change"; then
+              echo "bypass=true" >> $GITHUB_OUTPUT
+              echo "ℹ️ PR label 'arch:no-structural-change' detected. Skipping."
+              exit 0
+            fi
+          fi
+          
+          echo "bypass=false" >> $GITHUB_OUTPUT
+
+      - name: Run Architecture Drift Verifier
+        if: steps.check_bypass.outputs.bypass != 'true'
+        run: |
+          if [ -f "scripts/verify-sync.sh" ]; then
+            chmod +x scripts/verify-sync.sh
+            ./scripts/verify-sync.sh --ci
           else
-            echo "::warning title=Architecture Drift Detected::This PR modifies core code without updating ARCHITECTURE.md. Please run '/architecture-plan' or update §27 Changelog."
+            echo "::error title=Missing Verifier::scripts/verify-sync.sh not found."
+            exit 1
           fi

@@ -36,3 +36,23 @@ curl -fsSL https://raw.githubusercontent.com/kanau-tech/vibe-arch-guard/main/scr
 ```
 
 インストール後、Claude Code または Antigravity で `/architecture-plan` を実行するだけで、既存コードの100%逆解析または新規設計が完了します。
+
+---
+
+## 🛡️ 機械的検証とCIフェイルクローズド保証
+
+プロンプト遵守の善意に頼るだけでなく、ローカルおよびCIでの物理的なブロック機構を提供します:
+
+- **ローカル検証 (`./scripts/verify-sync.sh`)**:
+  - `git status` / `git diff` を解析し、構造変更があるのに `ARCHITECTURE.md` が更新されていない場合は **`exit 1`** で即座に停止。
+  - コミット前のステージング検査: `./scripts/verify-sync.sh --staged`
+- **GitHub Actions CI (`.github/workflows/arch-drift-check.yml`)**:
+  - PR作成時および `main` への直接Push時に自動検証。乖離がある場合はマージをブロック。
+  - 例外回避（エスケープハッチ）: PRラベル `arch:no-structural-change` または コミットメッセージ `[skip-arch-drift]`
+
+---
+
+## 📜 ライセンス
+
+MIT License © 2026 [Kanau Tech™](https://kanautech.jp).
+

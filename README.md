@@ -58,7 +58,12 @@ your-project/
 │   ├── rules/architecture-sync.md      # Auto-sync rule for Claude Code
 │   └── commands/architecture-plan.md   # /architecture-plan command
 ├── .cursor/rules/architecture-sync.mdc # Rules for Cursor / Windsurf
+├── .cursorrules                        # Legacy / Global Cursor rules
 ├── .agents/skills/architecture-sync/   # Antigravity (Agy) & Codex skill
+├── scripts/
+│   └── verify-sync.sh                  # Fail-closed local & pre-commit verifier
+├── .github/workflows/
+│   └── arch-drift-check.yml            # Fail-closed CI check for PRs and pushes
 └── docs/02-ky-thuat/
     ├── architecture.md                 # 27-section Single Source of Truth
     └── arch-flow.html                  # Standalone interactive flow simulator
@@ -121,20 +126,35 @@ Included in `templates/arch-flow-template.html` is a zero-dependency, self-conta
 
 ---
 
-## 🤖 GitHub Action CI Enforcement
+## 🛡️ Mechanical Verification & CI Enforcement (Fail-Closed)
 
-Keep your team and AI agents honest with `.github/workflows/arch-drift-check.yml`:
+Vibe Arch Guard does not rely on prompt goodwill alone. It provides strict mechanical enforcement at both local and CI levels:
 
-```yaml
-# Detects when core source files change without updating ARCHITECTURE.md
-- name: Verify Architecture File Updated
-  run: |
-    if echo "$CHANGED_FILES" | grep -qE 'ARCHITECTURE\.md'; then
-      echo "✅ Architecture synced!"
-    else
-      echo "::warning::Architecture Drift Detected! Please update ARCHITECTURE.md."
-    fi
+### 1. Local Verification (`scripts/verify-sync.sh`)
+Run locally or integrate into Git hooks (`pre-commit`):
+```bash
+# Verify current working tree and staging
+./scripts/verify-sync.sh
+
+# Verify staged changes before commit
+./scripts/verify-sync.sh --staged
 ```
+If structural source files (`.ts`, `.py`, `.go`, schemas, Docker, env) are modified without updating `ARCHITECTURE.md`, the verifier immediately exits with `code 1`, preventing accidental commits.
+
+### 2. GitHub Actions CI (`.github/workflows/arch-drift-check.yml`)
+Every Pull Request and direct push to `main` is gated:
+```yaml
+# Runs verify-sync.sh in CI mode — blocks PR merges on drift
+- name: Run Architecture Drift Verifier
+  run: |
+    chmod +x scripts/verify-sync.sh
+    ./scripts/verify-sync.sh --ci
+```
+
+#### Escape Hatches (When authorized):
+- **Commit message bypass**: Include `[skip-arch-drift]` in the commit message.
+- **PR Label bypass**: Attach the human-only label `arch:no-structural-change` to the Pull Request.
+- **CLI flag**: Pass `--allow-drift` or set `ARCH_GUARD_ALLOW_DRIFT=1`.
 
 ---
 

@@ -1,8 +1,9 @@
+<!-- archguard: synced=none status=unconfirmed date=[YYYY-MM-DD] -->
 # ARCHITECTURE.md — [プロジェクト名 / システム名]
 
-> 最終更新: 2026-10-09 · 同期コミット: `a1b2c3d` · ステータス: ✅ 確定済 (2026-10-09)
+> 最終更新: [YYYY-MM-DD] · 同期コミット: `[base-commit-hash]` · ステータス: ◼ 未確定 (初期ドラフト: /architecture-plan 未実行)
 > 
-> **規律**: 本ドキュメントはソースコードと100%同期した単一の真実（Single Source of Truth）です。技術要素は可能な限りソースコードのパスと行番号（`file:line`）を直接引用し、コード内に存在しない要素は `> Not Found（未検出）` と明記します。
+> **規律**: 本ドキュメントはソースコードと同期する単一の真実（Single Source of Truth）です。技術要素は可能な限りソースコードのパスと行番号（`file:line`）を直接引用し、コード内に存在しない要素は `> Not Found（未検出）` と明記します。初期導入時は必ず `◼ 未確定` であり、`/architecture-plan` による検証と人間の承認を経て初めて `✅ 確定済` に更新されます。
 
 ---
 
@@ -57,12 +58,12 @@
 ### 2. 技術スタック (Tech Stack)
 | レイヤー | 技術 / ライブラリ | バージョン | 採用理由 / 根拠 | 状態 |
 |---|---|---|---|---|
-| Runtime | Node.js / Bun / Python | | | ✅ |
-| Frontend | Next.js / React / Vite | | | ✅ |
-| Backend | Express / Fastify / FastAPI | | | ✅ |
-| Database | PostgreSQL / Supabase / MySQL | | | ✅ |
-| Cache/Queue | Redis / BullMQ | | | ✅ |
-| Cloud/Infra | AWS / Cloudflare / Docker | | | ✅ |
+| Runtime | [例: Node.js / Python / Go] | | | ◼ |
+| Frontend | [例: Next.js / React / Vue] | | | ◼ |
+| Backend | [例: Express / FastAPI / NestJS] | | | ◼ |
+| Database | [例: PostgreSQL / MySQL] | | | ◼ |
+| Cache/Queue | [例: Redis / BullMQ] | | | ◼ |
+| Cloud/Infra | [例: AWS / Docker] | | | ◼ |
 
 ---
 
@@ -113,21 +114,21 @@ flowchart TD
 ---
 
 ### 7. 認証方式 (Authentication)
-- トークン仕様: JWT (Access Token 15分 / Refresh Token 7日)
-- トークン保存先: `httpOnly`, `Secure`, `SameSite=Lax` Cookie
+- トークン仕様: [例: JWT (Access Token 15分 / Refresh Token 7日) / Session / Not Found]
+- トークン保存先: [例: httpOnly, Secure, SameSite=Lax Cookie / Authorization Header]
 
 ---
 
 ### 8. 認可 & 権限制御 (Authorization)
-- ロール定義: `SuperAdmin`, `TenantAdmin`, `Member`, `Guest`
-- マルチテナント分離方針: テナントIDによる行レベルセキュリティ (RLS) またはクエリフィルタ強制
+- ロール定義: [例: SuperAdmin, TenantAdmin, Member, Guest]
+- マルチテナント分離方針: [例: テナントIDによる行レベルセキュリティ (RLS) またはクエリフィルタ強制 / Not Applicable]
 
 ---
 
 ### 9. データベース設計 (Database Architecture)
-- エンジン & バージョン: PostgreSQL 16
-- マイグレーションツール: Prisma / Drizzle / Flyway
-- 接続プール設定: 最大コネクション数、タイムアウト規約
+- エンジン & バージョン: [例: PostgreSQL 16 / MySQL 8.0]
+- マイグレーションツール: [例: Prisma / Drizzle / Flyway]
+- 接続プール設定: [例: 最大コネクション数、タイムアウト規約]
 
 ---
 
@@ -174,8 +175,8 @@ sequenceDiagram
 ### 13. 外部連携サービス (External Services)
 | サービス名 | 用途 | 認証方式 | タイムアウト設定 | フォールバック |
 |---|---|---|---|---|
-| Stripe | 決済処理 | API Key (Secret) | 5000ms | Webhookでの非同期確認 |
-| SendGrid / SMTP | メール送信 | API Key | 3000ms | キューへ再エンキュー |
+| [例: Stripe] | [決済処理] | [API Key (Secret)] | [5000ms] | [Webhookでの非同期確認] |
+| [例: SendGrid] | [メール送信] | [API Key] | [3000ms] | [キューへ再エンキュー] |
 
 ---
 
@@ -237,8 +238,8 @@ sequenceDiagram
 ---
 
 ### 24. 非同期 & バックグラウンド処理 (Async & Background Workers)
-- キューエンジン: BullMQ / AWS SQS
-- リトライポリシー: 指数バックオフ (Max 3回) ➔ Dead Letter Queue (DLQ)
+- キューエンジン: [例: BullMQ / AWS SQS / None]
+- リトライポリシー: [例: 指数バックオフ (Max 3回) ➔ Dead Letter Queue (DLQ) / Not Applicable]
 
 ---
 
@@ -259,8 +260,7 @@ sequenceDiagram
 #### モジュール登録台帳 (Module Signature Registry)
 | モジュール名 | レイヤー | 依存先 (Imports) | 被依存 (Used By) | 入力 / 出力 | 状態保持 | リスク |
 |---|---|---|---|---|---|---|
-| `auth.service` | Backend Core | `db.user`, `jwt` | `auth.controller` | DTO: LoginReq ➔ TokenRes | Stateless | High |
-| `order.worker` | Async Worker | `queue.orders` | None | Event: `order.created` | Redis Job | Medium |
+| [module_name] | [Layer] | [imports] | [used_by] | [DTO/Events] | [Stateless/Stateful] | [Low/Med/High] |
 
 #### アーキテクチャ変更履歴 (Changelog)
-- 2026-10-09 · `a1b2c3d` · 初期アーキテクチャ27項目の策定 · 更新項目: 全章 (§1-§27)
+- [YYYY-MM-DD] · `[initial-hash]` · 初期アーキテクチャドラフト作成 · 更新項目: 全章 (§1-§27)

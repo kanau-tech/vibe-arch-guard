@@ -39,3 +39,23 @@ curl -fsSL https://raw.githubusercontent.com/kanau-tech/vibe-arch-guard/main/scr
 ```
 
 Sau khi cài đặt, gõ lệnh `/architecture-plan` trong Claude Code hoặc Antigravity để hệ thống tự động quét code và dựng kiến trúc chuẩn.
+
+---
+
+## 🛡️ Cơ chế kiểm tra vật lý & CI Fail-Closed
+
+Không chỉ dựa vào sự tự giác của AI, Vibe Arch Guard tích hợp cơ chế chặn cứng:
+
+- **Kiểm tra cục bộ (`./scripts/verify-sync.sh`)**:
+  - Tự động phát hiện khi có file logic cấu trúc thay đổi nhưng `ARCHITECTURE.md` chưa được cập nhật, trả về mã lỗi **`exit 1`** để chặn commit.
+  - Kiểm tra trước khi commit: `./scripts/verify-sync.sh --staged`
+- **GitHub Actions CI (`.github/workflows/arch-drift-check.yml`)**:
+  - Tự động chạy trên Pull Request và Push vào nhánh `main`. Chặn merge nếu có trôi dạt kiến trúc.
+  - Ngoại lệ được kiểm soát: Gắn nhãn PR `arch:no-structural-change` hoặc thêm `[skip-arch-drift]` vào commit message.
+
+---
+
+## 📜 Giấy phép bản quyền
+
+MIT License © 2026 [Kanau Tech™](https://kanautech.jp).
+
