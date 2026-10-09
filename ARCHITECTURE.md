@@ -278,7 +278,10 @@ sequenceDiagram
 | `.cursor/rules/architecture-sync.mdc` | Prompt Governance | Markdown / MDC | Cursor Engine | Context ➔ Rule Enforcement | Stateless | Low |
 | `skills/architecture-sync/SKILL.md` | Agent Skill | Markdown | Antigravity, Codex | Context ➔ Skill Capability | Stateless | Low |
 | `.github/workflows/arch-drift-check.yml` | CI Enforcement | `scripts/verify-sync.sh` | GitHub Actions Runner | PR / Push ➔ Check Result | Stateless | Medium |
+| `tests/run-all-tests.sh` | Test Automation | Bash, Git CLI | Developers, CI Workflow | Test Execution ➔ Exit Code (0/1) | Stateless | Low |
+| `templates/archguard.example.yml` | Configuration Template | YAML | End Users | Config Specification | Stateless | Low |
 
 #### アーキテクチャ変更履歴 (Changelog)
 - 2026-10-09 · `a5a3474` · 初期アーキテクチャ27項目の策定 · 更新項目: 全章 (§1-§27)
-- 2026-10-09 · `[current]` · v1.1 堅牢化: fail-closed CI、curlパイプインストーラー、4ツール完全パリティ、機械可読マーカー策定 · 更新項目: 全章 (§1-§27)
+- 2026-10-09 · `901fcb2` · v1.1 堅牢化: fail-closed CI、curlパイプインストーラー、4ツール完全パリティ、機械可読マーカー策定 · 更新項目: 全章 (§1-§27)
+- 2026-10-09 · `[current]` · 自動テストスイート（Parity/Verifier/Installer）構築、.archguard.yml 設定サポート、Qレベル階層化、自前生成ビジュアル資産（Simulator PNG & CLI SVG）の統合 · 更新項目: §3, §10, §21, §27

@@ -28,6 +28,8 @@ User Prompt ➔ /architecture-plan (27 mục) ➔ Người duyệt ➔ Code + T�
 3. **Cấp độ 3: Vẽ sơ đồ động (Interactive Simulator)**:
    - File HTML độc lập, nhẹ token, mô phỏng luồng request đi qua từng tầng (Browser ➔ Edge ➔ Gateway ➔ API ➔ DB ➔ Workers) khi trình diễn cho khách hàng hoặc sếp.
 
+![Mô phỏng kiến trúc động](../assets/arch-flow-simulator.png)
+
 ---
 
 ## 🚀 Cài đặt nhanh trong 1 phút
@@ -45,6 +47,8 @@ Sau khi cài đặt, gõ lệnh `/architecture-plan` trong Claude Code hoặc An
 ## 🛡️ Cơ chế kiểm tra vật lý & CI Fail-Closed
 
 Không chỉ dựa vào sự tự giác của AI, Vibe Arch Guard tích hợp cơ chế chặn cứng:
+
+![Demo kiểm tra CLI Fail-Closed](../assets/cli-demo.svg)
 
 - **Kiểm tra cục bộ (`./scripts/verify-sync.sh`)**:
   - Tự động phát hiện khi có file logic cấu trúc thay đổi nhưng `ARCHITECTURE.md` chưa được cập nhật, trả về mã lỗi **`exit 1`** để chặn commit.

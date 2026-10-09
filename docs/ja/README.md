@@ -25,6 +25,8 @@ Vibe Arch Guard 適用時:
 2. **第2段階：27項目の `ARCHITECTURE.md`（推奨・常用）**: 実コード行番号（`file:line`）に基づく完全同期ドキュメント。トークン消費を最小化しつつ設計ドリフトを完全抑止。
 3. **第3段階：動的アーキテクチャシミュレータ**: 単一HTML（Vanilla JS）でデータ遷移とレイヤー点灯を可視化。顧客提案・ステークホルダー合意に絶大な効果。
 
+![動的アーキテクチャシミュレータ](../assets/arch-flow-simulator.png)
+
 ---
 
 ## 🚀 クイックスタート (1分導入)
@@ -42,6 +44,8 @@ curl -fsSL https://raw.githubusercontent.com/kanau-tech/vibe-arch-guard/main/scr
 ## 🛡️ 機械的検証とCIフェイルクローズド保証
 
 プロンプト遵守の善意に頼るだけでなく、ローカルおよびCIでの物理的なブロック機構を提供します:
+
+![CLIフェイルクローズド検証デモ](../assets/cli-demo.svg)
 
 - **ローカル検証 (`./scripts/verify-sync.sh`)**:
   - `git status` / `git diff` を解析し、構造変更があるのに `ARCHITECTURE.md` が更新されていない場合は **`exit 1`** で即座に停止。

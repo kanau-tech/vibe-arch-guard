@@ -48,12 +48,23 @@ fi
 
 # 2. Locate architecture file
 ARCH_FILE=""
-if [ -f "docs/02-ky-thuat/architecture.md" ]; then
-  ARCH_FILE="docs/02-ky-thuat/architecture.md"
-elif [ -f "docs/ARCHITECTURE.md" ]; then
-  ARCH_FILE="docs/ARCHITECTURE.md"
-elif [ -f "ARCHITECTURE.md" ]; then
-  ARCH_FILE="ARCHITECTURE.md"
+
+# Check if .archguard.yml specifies an explicit architecture file
+if [ -f ".archguard.yml" ]; then
+  CONFIG_ARCH_FILE="$(grep -E '^[[:space:]]*architecture_file:' .archguard.yml | head -n 1 | sed -E 's/^[[:space:]]*architecture_file:[[:space:]]*["'"'"']?([^"'"'"']+)["'"'"']?/\1/' | tr -d ' ' || true)"
+  if [ -n "$CONFIG_ARCH_FILE" ] && [ -f "$CONFIG_ARCH_FILE" ]; then
+    ARCH_FILE="$CONFIG_ARCH_FILE"
+  fi
+fi
+
+if [ -z "$ARCH_FILE" ]; then
+  if [ -f "docs/02-ky-thuat/architecture.md" ]; then
+    ARCH_FILE="docs/02-ky-thuat/architecture.md"
+  elif [ -f "docs/ARCHITECTURE.md" ]; then
+    ARCH_FILE="docs/ARCHITECTURE.md"
+  elif [ -f "ARCHITECTURE.md" ]; then
+    ARCH_FILE="ARCHITECTURE.md"
+  fi
 fi
 
 if [ -z "$ARCH_FILE" ]; then

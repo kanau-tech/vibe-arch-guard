@@ -1,0 +1,39 @@
+# Vibe Arch Guard — Project Configuration (.archguard.yml)
+# Optional configuration file to customize architecture verification rules.
+version: 1
+
+# Explicit architecture document path (Overrides auto-detection)
+architecture_file: "docs/02-ky-thuat/architecture.md"
+
+# Quality Level of repository: Q1 (Prototype) | Q2 (Pilot) | Q3 (Production) | Q4 (Critical)
+quality_level: "Q3"
+
+# Glob patterns that are considered structural modifications
+structural:
+  - "src/**"
+  - "app/**"
+  - "apps/**"
+  - "packages/**"
+  - "lib/**"
+  - "internal/**"
+  - "cmd/**"
+  - "prisma/**"
+  - "migrations/**"
+  - "docker-compose*.yml"
+  - "Dockerfile*"
+  - ".env.example"
+
+# Glob patterns ignored during drift analysis
+ignore:
+  - "**/*.md"
+  - "**/*.mdx"
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "**/tests/**"
+  - "**/*-lock.json"
+  - "**/yarn.lock"
+  - "**/pnpm-lock.yaml"
+  - "**/bun.lockb"
+  - "**/Cargo.lock"
+  - "**/poetry.lock"
+  - "**/go.sum"

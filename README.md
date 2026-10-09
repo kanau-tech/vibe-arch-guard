@@ -120,8 +120,10 @@ Every architecture document is 100% reverse-engineered from or pre-planned for r
 
 Included in `templates/arch-flow-template.html` is a zero-dependency, self-contained single-file HTML application. Open it directly in your browser:
 
+![Interactive Architecture Flow Simulator](docs/assets/arch-flow-simulator.png)
+
 - **Scenario Selector**: Click between real business flows (*Create Card*, *Realtime D&D*, *File Upload*, *Worker Jobs*, *Webhook*).
-- **Packet Travel Animation**: Watch requests transition across Clients ➔ Edge ➔ Gateway ➔ API Layers ➔ Database ➔ Workers.
+- **Packet Travel Animation**: Watch requests transition across Clients ➔ Edge ➔ Gateway ➔ API Layers ➔ Database ➔ Workers with live glowing nodes.
 - **Client Presentation Ready**: Explain complex technical architectures to non-technical business stakeholders effortlessly.
 
 ---
@@ -129,6 +131,8 @@ Included in `templates/arch-flow-template.html` is a zero-dependency, self-conta
 ## 🛡️ Mechanical Verification & CI Enforcement (Fail-Closed)
 
 Vibe Arch Guard does not rely on prompt goodwill alone. It provides strict mechanical enforcement at both local and CI levels:
+
+![CLI Fail-Closed Verification Demo](docs/assets/cli-demo.svg)
 
 ### 1. Local Verification (`scripts/verify-sync.sh`)
 Run locally or integrate into Git hooks (`pre-commit`):
@@ -155,6 +159,7 @@ Every Pull Request and direct push to `main` is gated:
 - **Commit message bypass**: Include `[skip-arch-drift]` in the commit message.
 - **PR Label bypass**: Attach the human-only label `arch:no-structural-change` to the Pull Request.
 - **CLI flag**: Pass `--allow-drift` or set `ARCH_GUARD_ALLOW_DRIFT=1`.
+
 
 ---
 
