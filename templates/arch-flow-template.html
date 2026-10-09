@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Architecture Flow Viewer — Kanau Tech™</title>
+  <style>
+    :root {
+      --bg: #0e1117;
+      --card-bg: #161b22;
+      --card-border: #30363d;
+      --text-main: #c9d1d9;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-glow: rgba(88, 166, 255, 0.4);
+      --success: #3fb950;
+      --warning: #d29922;
+      --highlight: #f0883e;
+      --active-card: #1f2937;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    header {
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(88, 166, 255, 0.2);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
+    /* Controls & Scenarios */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+      background: #11151c;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .scenarios {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button.tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    button.tab-btn:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    button.tab-btn.active {
+      background: rgba(88, 166, 255, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .playback-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .control-btn {
+      background: #21262d;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+    .control-btn:hover { background: #30363d; }
+    .control-btn.primary { background: #238636; border-color: #2ea043; }
+    .control-btn.primary:hover { background: #2ea043; }
+
+    /* Canvas Grid Layout */
+    .grid-container {
+      display: grid;
+      grid-template-columns: 240px 220px 240px 320px 240px;
+      gap: 20px;
+      overflow-x: auto;
+      padding-bottom: 24px;
+      position: relative;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .col-header {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      font-weight: 700;
+      border-bottom: 1px solid #21262d;
+      padding-bottom: 6px;
+      text-align: center;
+    }
+
+    /* Node Cards */
+    .node-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .node-card.lit {
+      border-color: var(--accent);
+      background: var(--active-card);
+      box-shadow: 0 0 16px var(--accent-glow);
+      transform: translateY(-2px);
+    }
+
+    .node-card.lit-db {
+      border-color: var(--success);
+      box-shadow: 0 0 16px rgba(63, 185, 80, 0.4);
+    }
+
+    .node-card.lit-ext {
+      border-color: var(--highlight);
+      box-shadow: 0 0 16px rgba(240, 136, 62, 0.4);
+    }
+
+    .node-type {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .node-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .node-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Sub-layers inside API Box */
+    .api-sublayers {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #0d1117;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #21262d;
+    }
+
+    .layer-item {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .layer-item.active {
+      color: #fff;
+      background: #1f6feb;
+      border-color: #58a6ff;
+      box-shadow: 0 0 8px rgba(88, 166, 255, 0.6);
+      font-weight: 600;
+    }
+
+    /* Status Bar / Explainer */
+    .explanation-bar {
+      margin-top: 20px;
+      background: #161b22;
+      border: 1px solid var(--card-border);
+      padding: 16px 20px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .step-text {
+      font-size: 14px;
+      color: #fff;
+    }
+    .step-text strong {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>
+      <span>システムアーキテクチャ動的フロー検証</span>
+      <span class="badge">Architecture Flow Simulator v1.0</span>
+    </h1>
+    <p class="subtitle">
+      §4 システムアーキテクチャの要求経路シミュレータ。シナリオを選択または「再生」ボタンを押すと、要求が通過するレイヤーが順次発光します。
+    </p>
+  </header>
+
+  <div class="toolbar">
+    <div class="scenarios" id="scenarioTabs">
+      <button class="tab-btn active" onclick="selectScenario(0)">0. 全体構造</button>
+      <button class="tab-btn" onclick="selectScenario(1)">1. カード作成 (新規登録)</button>
+      <button class="tab-btn" onclick="selectScenario(2)">2. リアルタイムD&D</button>
+      <button class="tab-btn" onclick="selectScenario(3)">3. ファイル添付 (S3)</button>
+      <button class="tab-btn" onclick="selectScenario(4)">4. 非同期Job (メール/通知)</button>
+      <button class="tab-btn" onclick="selectScenario(5)">5. LINE/Bot Webhook</button>
+      <button class="tab-btn" onclick="selectScenario(6)">6. 監視 & アラート</button>
+    </div>
+
+    <div class="playback-controls">
+      <button class="control-btn" onclick="prevStep()">◀ 前へ</button>
+      <button class="control-btn primary" id="playBtn" onclick="togglePlay()">▶ 再生</button>
+      <button class="control-btn" onclick="nextStep()">次へ ▶</button>
+      <button class="control-btn" onclick="toggleSpeed()" id="speedBtn">1x</button>
+    </div>
+  </div>
+
+  <div class="grid-container">
+    <!-- Col 1: Clients -->
+    <div class="column">
+      <div class="col-header">1. クライアント / 外部呼出</div>
+      <div class="node-card" id="node-browser">
+        <div class="node-type">Web Client</div>
+        <div class="node-title">ブラウザ (PC / スマホ)</div>
+        <div class="node-desc">一般ユーザー / 管理画面</div>
+      </div>
+      <div class="node-card" id="node-webhook">
+        <div class="node-type">External Webhook</div>
+        <div class="node-title">LINE / 外部プラットフォーム</div>
+        <div class="node-desc">メッセージ送信 / Webhookイベント</div>
+      </div>
+    </div>
+
+    <!-- Col 2: Edge & Gateway -->
+    <div class="column">
+      <div class="col-header">2. 境界 & Gateway</div>
+      <div class="node-card" id="node-edge">
+        <div class="node-type">Edge Network</div>
+        <div class="node-title">Cloudflare / WAF</div>
+        <div class="node-desc">DDoS緩和 · SSL終端 · CDNキャッシュ</div>
+      </div>
+      <div class="node-card" id="node-gateway">
+        <div class="node-type">Reverse Proxy</div>
+        <div class="node-title">Nginx Gateway (:443)</div>
+        <div class="node-desc">ルーティング (`/api`, `/`, `/ws`)</div>
+      </div>
+    </div>
+
+    <!-- Col 3: Frontend Apps -->
+    <div class="column">
+      <div class="col-header">3. フロントエンド層</div>
+      <div class="node-card" id="node-fe-user">
+        <div class="node-type">SPA / React</div>
+        <div class="node-title">ユーザーポータル</div>
+        <div class="node-desc">ポート :8080 (クライアントレンダリング)</div>
+      </div>
+      <div class="node-card" id="node-fe-admin">
+        <div class="node-type">SPA / Admin</div>
+        <div class="node-title">管理者ダッシュボード</div>
+        <div class="node-desc">ポート :8081 (権限管理画面)</div>
+      </div>
+      <div class="node-card" id="node-fe-landing">
+        <div class="node-type">SSR / Next.js</div>
+        <div class="node-title">LP / 公式サイト</div>
+        <div class="node-desc">ポート :3000 (SEO / 高速初期描画)</div>
+      </div>
+    </div>
+
+    <!-- Col 4: API Process & 4 Layers -->
+    <div class="column">
+      <div class="col-header">4. API コアプロセス</div>
+      <div class="node-card" id="node-api">
+        <div class="node-type">Core API Service</div>
+        <div class="node-title">API Server (:4000)</div>
+        <div class="node-desc">Express / NestJS + Socket.io</div>
+        
+        <!-- Internal 4 Layers -->
+        <div class="api-sublayers">
+          <div class="layer-item" id="layer-auth">① AuthN / JWT 検証</div>
+          <div class="layer-item" id="layer-controller">② Controller (Zod Validation)</div>
+          <div class="layer-item" id="layer-service">③ Service (業務ドメインロジック)</div>
+          <div class="layer-item" id="layer-db-trans">④ ORM トランザクション & Socket Emit</div>
+        </div>
+      </div>
+
+      <div class="node-card" id="node-workers">
+        <div class="node-type">Background Workers</div>
+        <div class="node-title">BullMQ 非同期ワーカー</div>
+        <div class="node-desc">メール送信 · AI要約 · バックアップ</div>
+      </div>
+    </div>
+
+    <!-- Col 5: Storage & External -->
+    <div class="column">
+      <div class="col-header">5. 永続化 & 外部サービス</div>
+      <div class="node-card" id="node-db">
+        <div class="node-type">RDBMS</div>
+        <div class="node-title">PostgreSQL 16</div>
+        <div class="node-desc">Prisma ORM (ACID トランザクション)</div>
+      </div>
+      <div class="node-card" id="node-redis">
+        <div class="node-type">Cache & Queue</div>
+        <div class="node-title">Redis 7</div>
+        <div class="node-desc">セッション · キャッシュ · BullMQ</div>
+      </div>
+      <div class="node-card" id="node-s3">
+        <div class="node-type">Object Storage</div>
+        <div class="node-title">MinIO / AWS S3</div>
+        <div class="node-desc">画像 · 添付ファイル保存</div>
+      </div>
+      <div class="node-card" id="node-ext-api">
+        <div class="node-type">External Service</div>
+        <div class="node-title">外部API (AI / 決済 / 通知)</div>
+        <div class="node-desc">DeepSeek / OpenAI · Stripe · LINE Bot</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="explanation-bar">
+    <div class="step-text" id="explanationText">
+      <strong>シナリオ準備完了:</strong> タブを切り替えるか、「再生」ボタンを押してデータ遷移を確認してください。
+    </div>
+    <div style="font-size: 12px; color: var(--text-muted);">
+      Kanau Tech™ Monozukuri OS v6.0 Compliant
+    </div>
+  </div>
+
+  <script>
+    // Scenarios data definition
+    const scenarios = [
+      {
+        id: 0,
+        title: "全体構造",
+        steps: [
+          { text: "システム全体図。ブラウザ/外部呼出からGatewayを経てAPI・ストレージ・外部連携へ接続されます。", nodes: [], layers: [] }
+        ]
+      },
+      {
+        id: 1,
+        title: "カード作成 (新規登録)",
+        steps: [
+          { text: "1. ユーザーがブラウザで「作成」ボタンを押下 (POST /api/cards)", nodes: ["node-browser"], layers: [] },
+          { text: "2. Cloudflare WAF を通過し SSL 終端、Nginx Gateway に到達", nodes: ["node-edge", "node-gateway"], layers: [] },
+          { text: "3. Gateway が API サーバーへリクエストを転送", nodes: ["node-api"], layers: [] },
+          { text: "4. API内部 ①: JWTトークンを検証しユーザーIDを特定", nodes: ["node-api"], layers: ["layer-auth"] },
+          { text: "5. API内部 ②: Zod スキーマで入力バリデーション実行", nodes: ["node-api"], layers: ["layer-controller"] },
+          { text: "6. API内部 ③: ワークスペース権限チェックと業務ルール適用", nodes: ["node-api"], layers: ["layer-service"] },
+          { text: "7. API内部 ④ & DB: PostgreSQL にトランザクションを張って保存", nodes: ["node-api", "node-db"], layers: ["layer-db-trans"] },
+          { text: "8. 完了レスポンス (201 Created) をブラウザへ返却", nodes: ["node-browser", "node-api"], layers: [] }
+        ]
+      },
+      {
+        id: 2,
+        title: "リアルタイムD&D",
+        steps: [
+          { text: "1. ユーザーがボード上でカードを別カラムへドラッグ＆ドロップ", nodes: ["node-browser"], layers: [] },
+          { text: "2. WebSocket (Socket.io) 経由で Gateway 経由 API へイベント送信", nodes: ["node-gateway", "node-api"], layers: [] },
+          { text: "3. API が PostgreSQL の並び順（position）を更新", nodes: ["node-api", "node-db"], layers: ["layer-db-trans"] },
+          { text: "4. API が同ボードに参加中の全クライアントへ WebSocket ブロードキャスト", nodes: ["node-api", "node-fe-user", "node-browser"], layers: [] }
+        ]
+      },
+      {
+        id: 3,
+        title: "ファイル添付 (S3)",
+        steps: [
+          { text: "1. ユーザーがファイルをアップロード", nodes: ["node-browser"], layers: [] },
+          { text: "2. API が S3 / MinIO 用の Presigned URL を発行", nodes: ["node-api", "node-s3"], layers: ["layer-service"] },
+          { text: "3. ブラウザが S3/MinIO へ直接バイナリをアップロード (API負荷軽減)", nodes: ["node-browser", "node-s3"], layers: [] },
+          { text: "4. メタデータ (ファイル名・URL) を PostgreSQL に記録", nodes: ["node-api", "node-db"], layers: ["layer-db-trans"] }
+        ]
+      },
+      {
+        id: 4,
+        title: "非同期Job (メール/通知)",
+        steps: [
+          { text: "1. 期限到来または一括処理イベントが発生", nodes: ["node-api"], layers: ["layer-service"] },
+          { text: "2. API が Redis (BullMQ) にジョブをエンキュー", nodes: ["node-api", "node-redis"], layers: [] },
+          { text: "3. バックグラウンド Worker がキューからジョブを取り出し", nodes: ["node-workers", "node-redis"], layers: [] },
+          { text: "4. Worker が外部通知 API (SMTP / LINE) へ送信実行", nodes: ["node-workers", "node-ext-api"], layers: [] }
+        ]
+      },
+      {
+        id: 5,
+        title: "LINE/Bot Webhook",
+        steps: [
+          { text: "1. 外部ユーザーが LINE でメッセージを送信", nodes: ["node-webhook"], layers: [] },
+          { text: "2. LINE サーバーから Gateway の `/webhook/bot` へ POST 到達", nodes: ["node-edge", "node-gateway"], layers: [] },
+          { text: "3. API が署名検証を行い、AI サービス (DeepSeek / OpenAI) へ要約依頼", nodes: ["node-api", "node-ext-api"], layers: ["layer-controller", "layer-service"] },
+          { text: "4. 生成結果を DB に保存し、LINE 返信 API をコール", nodes: ["node-api", "node-db", "node-ext-api"], layers: ["layer-db-trans"] }
+        ]
+      },
+      {
+        id: 6,
+        title: "監視 & アラート",
+        steps: [
+          { text: "1. 各コンテナの stdout ログおよびメトリクスを収集", nodes: ["node-api", "node-workers", "node-db"], layers: [] },
+          { text: "2. エラー率の上昇または異常を検知した際にアラート発火", nodes: ["node-ext-api"], layers: [] },
+          { text: "3. 運用者宛てに Telegram / Slack へ即座に障害通知", nodes: ["node-ext-api"], layers: [] }
+        ]
+      }
+    ];
+
+    let currentScenarioIdx = 0;
+    let currentStepIdx = 0;
+    let isPlaying = false;
+    let playInterval = null;
+    let playSpeed = 1500; // ms per step
+
+    function selectScenario(idx) {
+      stopPlay();
+      currentScenarioIdx = idx;
+      currentStepIdx = 0;
+
+      // Update tab UI
+      const tabs = document.querySelectorAll(".tab-btn");
+      tabs.forEach((tab, i) => {
+        tab.classList.toggle("active", i === idx);
+      });
+
+      renderStep();
+    }
+
+    function renderStep() {
+      const scenario = scenarios[currentScenarioIdx];
+      const step = scenario.steps[currentStepIdx] || scenario.steps[0];
+
+      // Update explanation text
+      const textElem = document.getElementById("explanationText");
+      textElem.innerHTML = `<strong>[${scenario.title} - Step ${currentStepIdx + 1}/${scenario.steps.length}]</strong> ${step.text}`;
+
+      // Reset all cards
+      document.querySelectorAll(".node-card").forEach(el => {
+        el.classList.remove("lit", "lit-db", "lit-ext");
+      });
+      document.querySelectorAll(".layer-item").forEach(el => {
+        el.classList.remove("active");
+      });
+
+      // Highlight active nodes
+      if (step.nodes) {
+        step.nodes.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            if (id === "node-db" || id === "node-redis" || id === "node-s3") {
+              el.classList.add("lit-db");
+            } else if (id === "node-ext-api" || id === "node-webhook") {
+              el.classList.add("lit-ext");
+            } else {
+              el.classList.add("lit");
+            }
+          }
+        });
+      }
+
+      // Highlight internal layers
+      if (step.layers) {
+        step.layers.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.add("active");
+        });
+      }
+    }
+
+    function nextStep() {
+      const scenario = scenarios[currentScenarioIdx];
+      if (currentStepIdx < scenario.steps.length - 1) {
+        currentStepIdx++;
+        renderStep();
+      } else {
+        if (isPlaying) {
+          // Loop or stop
+          currentStepIdx = 0;
+          renderStep();
+        }
+      }
+    }
+
+    function prevStep() {
+      if (currentStepIdx > 0) {
+        currentStepIdx--;
+        renderStep();
+      }
+    }
+
+    function togglePlay() {
+      if (isPlaying) {
+        stopPlay();
+      } else {
+        startPlay();
+      }
+    }
+
+    function startPlay() {
+      isPlaying = true;
+      document.getElementById("playBtn").innerText = "⏸ 停止";
+      document.getElementById("playBtn").style.background = "#d29922";
+      playInterval = setInterval(() => {
+        nextStep();
+      }, playSpeed);
+    }
+
+    function stopPlay() {
+      isPlaying = false;
+      if (playInterval) clearInterval(playInterval);
+      document.getElementById("playBtn").innerText = "▶ 再生";
+      document.getElementById("playBtn").style.background = "#238636";
+    }
+
+    function toggleSpeed() {
+      const btn = document.getElementById("speedBtn");
+      if (playSpeed === 1500) {
+        playSpeed = 800;
+        btn.innerText = "2x";
+      } else {
+        playSpeed = 1500;
+        btn.innerText = "1x";
+      }
+      if (isPlaying) {
+        clearInterval(playInterval);
+        playInterval = setInterval(nextStep, playSpeed);
+      }
+    }
+
+    // Initialize
+    selectScenario(0);
+  </script>
+</body>
+</html>

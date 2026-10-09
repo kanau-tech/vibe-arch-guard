@@ -1,0 +1,25 @@
+---
+description: Enforce Architecture First & Synchronize ARCHITECTURE.md on every structural change
+globs: **/*
+alwaysApply: true
+---
+
+# Architecture Sync Rule (Cursor / Windsurf)
+
+## Purpose
+Prevent architecture drift and spaghetti code caused by AI taking shortcuts. Keep `ARCHITECTURE.md` 100% in sync with code.
+
+## Mandatory Rules for AI
+1. **Architecture First**: If starting work on a repository without an architecture specification, propose and generate `ARCHITECTURE.md` (or `docs/02-ky-thuat/architecture.md`) with 27 sections before writing code.
+2. **Same-Turn Synchronization**: Whenever you add or alter:
+   - Services or modules
+   - Database tables, columns, or relations
+   - API endpoints or Webhooks
+   - Background jobs or message queues
+   - External third-party integrations
+   - Environment variables
+   YOU MUST update `ARCHITECTURE.md` in the exact same response/turn.
+3. **Commit & Status Tracking**:
+   - Header must be updated: `> Last Updated: YYYY-MM-DD · Synced Commit: [hash] · Status: ✅ Confirmed`
+   - Use status symbols: `✅ In Code` · `◼ Planned` · `⚠️ Drift/Review` · `~~Deprecated~~`
+   - Append 1 line to §27 Changelog: `- YYYY-MM-DD · <hash> · <summary> · Sections: §4, §9`
